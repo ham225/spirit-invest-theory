@@ -9,6 +9,8 @@ import datetime
 import sys
 from pathlib import Path
 
+JST = datetime.timezone(datetime.timedelta(hours=9))
+
 import yfinance as yf
 
 from theory_signals import (
@@ -70,8 +72,9 @@ def already_logged(today: str) -> bool:
 
 
 def main():
-    today = datetime.date.today().isoformat()
-    year = datetime.date.today().year
+    now_jst = datetime.datetime.now(JST).date()
+    today = now_jst.isoformat()
+    year = now_jst.year
 
     if already_logged(today):
         print(f"{today} は記録済みのためスキップします")
