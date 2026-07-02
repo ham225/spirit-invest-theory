@@ -30,6 +30,9 @@ jobs:
       - name: バックテストレポートを更新
         run: python backtest.py
 
+      - name: note投稿用の記事を生成
+        run: python generate_article.py
+
       - name: 変更をコミットして反映
         run: |
           git config user.name "github-actions[bot]"
