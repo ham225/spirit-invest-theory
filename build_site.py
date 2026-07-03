@@ -11,7 +11,7 @@ from pathlib import Path
 
 import markdown
 
-from theory_score import format_report
+from theory_score import alert_score, annual_scenario, format_daily
 
 BASE = Path(__file__).resolve().parent
 DOCS = BASE / "docs"
@@ -88,14 +88,14 @@ def render_markdown(text: str) -> str:
 def build_theory_page():
     text = (BASE / "THEORY.md").read_text(encoding="utf-8")
     html = render_markdown(text)
-    (DOCS / "theory.html").write_text(page("理論定義 | 三層スピリチュアル・マーケット理論(仮)", html), encoding="utf-8")
+    (DOCS / "theory.html").write_text(page("理論定義 | 三層スピリチュアル・マーケット理論(3SM理論)", html), encoding="utf-8")
 
 
 def build_backtest_page():
     path = BASE / "insights" / "backtest.md"
     text = path.read_text(encoding="utf-8") if path.exists() else "# バックテストレポート\n\nまだ生成されていません。"
     html = render_markdown(text)
-    (DOCS / "backtest.html").write_text(page("バックテスト | 三層スピリチュアル・マーケット理論(仮)", html), encoding="utf-8")
+    (DOCS / "backtest.html").write_text(page("バックテスト | 三層スピリチュアル・マーケット理論(3SM理論)", html), encoding="utf-8")
 
 
 def build_article_pages() -> list[tuple[str, str]]:
@@ -108,14 +108,15 @@ def build_article_pages() -> list[tuple[str, str]]:
         date = md_path.stem
         html = render_markdown(md_path.read_text(encoding="utf-8"))
         out_path = articles_out / f"{date}.html"
-        out_path.write_text(page(f"{date}の記事 | 三層スピリチュアル・マーケット理論(仮)", html), encoding="utf-8")
+        out_path.write_text(page(f"{date}の記事 | 三層スピリチュアル・マーケット理論(3SM理論)", html), encoding="utf-8")
         entries.append((date, f"articles/{date}.html"))
     return entries
 
 
 def build_index(articles: list[tuple[str, str]], today: datetime.date):
-    score_text = format_report(today.year, today)
-    score_html = f"<h2>{today.year}年 理論スコアカード</h2>\n<pre>{score_text}</pre>"
+    daily_text = format_daily(alert_score(today.isoformat()))
+    yearly_html = render_markdown(annual_scenario(today.year))
+    score_html = f"<h2>本日の警戒レベル</h2>\n<pre>{daily_text}</pre>\n{yearly_html}"
 
     if articles:
         items = "\n".join(f'<li><a href="{href}">{date}</a></li>' for date, href in articles)
@@ -124,16 +125,16 @@ def build_index(articles: list[tuple[str, str]], today: datetime.date):
         articles_html = "<h2>日次記事</h2>\n<p>まだ記事がありません。</p>"
 
     body = f"""
-<h1>三層スピリチュアル・マーケット理論(仮)</h1>
-<p>干支五行・九星気学・西洋占星術を掛け合わせた相場理論の検証記録。
-詳しい理論定義は<a href="theory.html">理論定義ページ</a>、
+<h1>三層スピリチュアル・マーケット理論(3SM理論)</h1>
+<p>通称「宙読み相場」。干支五行・九星気学・西洋占星術を掛け合わせた相場理論の検証記録。
+詳しい理論定義は<a href="theory.html">理論定義ページ(THEORY.md)</a>、
 自動計算の仕組みは<a href="https://github.com/ham225/spirit-invest-theory">リポジトリのREADME</a>を参照。</p>
 {score_html}
 {articles_html}
 {DISCLAIMER_HTML}
 <p style="font-size:0.8rem;color:#888;">最終更新: {today.isoformat()}</p>
 """
-    (DOCS / "index.html").write_text(page("三層スピリチュアル・マーケット理論(仮)", body, nav=False), encoding="utf-8")
+    (DOCS / "index.html").write_text(page("三層スピリチュアル・マーケット理論(3SM理論)", body, nav=False), encoding="utf-8")
 
 
 def main():
