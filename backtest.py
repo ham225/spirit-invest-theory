@@ -9,6 +9,8 @@ import csv
 import statistics
 from pathlib import Path
 
+from theory_score import ALERT_BANDS, alert_score
+
 BASE = Path(__file__).resolve().parent
 LOG = BASE / "data" / "log.csv"
 OUT = BASE / "insights" / "backtest.md"
@@ -57,6 +59,25 @@ def build_table(rows, split_fn):
     return "\n".join(lines)
 
 
+def build_band_table(rows):
+    """3SM理論の警戒レベル(平常〜厳戒)別に、資産別の平均絶対変化率を表にする。"""
+    bands = [name for _, name in reversed(ALERT_BANDS)]
+    by_band = {}
+    for r in rows:
+        band = alert_score(r["date"])["band"]
+        by_band.setdefault(band, []).append(r)
+    lines = ["| 資産 | " + " | ".join(bands) + " |", "|---|" + "---|" * len(bands)]
+    for asset in ASSETS:
+        cells = []
+        for band in bands:
+            vals = [to_float(r.get(f"{asset}_chg_pct")) for r in by_band.get(band, [])]
+            cells.append(str(mean_abs(vals)))
+        lines.append(f"| {asset} | " + " | ".join(cells) + " |")
+    counts = [str(len(by_band.get(band, []))) for band in bands]
+    lines.append("| (サンプル日数) | " + " | ".join(counts) + " |")
+    return "\n".join(lines)
+
+
 def main():
     rows = load_rows()
     OUT.parent.mkdir(parents=True, exist_ok=True)
@@ -81,6 +102,7 @@ def main():
         return abs(days) <= ORB_DAYS
 
     orb_table = build_table(rows, orb_flag)
+    band_table = build_band_table(rows)
 
     content = f"""# バックテストレポート
 
@@ -93,6 +115,14 @@ def main():
 ## Layer3: 土星海王星の合(前後{ORB_DAYS}日)vs 通常時の平均絶対変化率(%)
 
 {orb_table}
+
+## 統合: 3SM理論の警戒レベル別・平均絶対変化率(%)
+
+{band_table}
+
+> 反証判定(THEORY.md §6): 250営業日以上たまった時点で「厳戒・警戒」の日の
+> 平均絶対変化率が「注意・平常」の日と同等以下なら、Layer3のタイミング仮説は
+> 支持されない(理論を守るための後付け修正はしない)。
 
 ---
 
