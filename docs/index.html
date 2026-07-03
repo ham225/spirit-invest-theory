@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>三層スピリチュアル・マーケット理論(仮)</title>
+<style>
+:root { color-scheme: light dark; }
+body {
+  font-family: -apple-system, "Segoe UI", "Hiragino Sans", "Yu Gothic", sans-serif;
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  line-height: 1.75;
+  background: light-dark(#fafafa, #1a1a1a);
+  color: light-dark(#1a1a1a, #eee);
+}
+nav { margin-bottom: 1.5rem; font-size: 0.9rem; }
+nav a { margin-right: 1rem; }
+pre {
+  background: light-dark(#eee, #2a2a2a);
+  padding: 1rem;
+  overflow-x: auto;
+  border-radius: 6px;
+  white-space: pre-wrap;
+}
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+th, td { border: 1px solid light-dark(#ccc, #444); padding: 0.4rem 0.6rem; text-align: left; }
+.disclaimer {
+  margin-top: 2rem;
+  padding: 1rem;
+  border-left: 4px solid #a66;
+  background: light-dark(#fff3f3, #2a1a1a);
+  font-size: 0.9rem;
+}
+.article-list li { margin-bottom: 0.4rem; }
+footer { margin-top: 2rem; font-size: 0.8rem; color: light-dark(#666, #999); }
+</style>
+</head>
+<body>
+
+
+<h1>三層スピリチュアル・マーケット理論(仮)</h1>
+<p>干支五行・九星気学・西洋占星術を掛け合わせた相場理論の検証記録。
+詳しい理論定義は<a href="theory.html">理論定義ページ</a>、
+自動計算の仕組みは<a href="https://github.com/ham225/spirit-invest-theory">リポジトリのREADME</a>を参照。</p>
+<h2>2026年 理論スコアカード</h2>
+<pre>=== 2026年 理論スコアカード(三層スピリチュアル・マーケット理論・仮) ===
+
+[Layer1] 干支五行トレンド(方向・強度)
+  干支: 丙午 / 十干の属性=火 / 十二支の属性(年代表)=火
+  関係: 比和(同気が重なり、その属性が増幅されやすい)
+  スコア: 5/5
+
+[Layer2] 九星気学・中宮(隠れリスク層)
+  中宮: 一白水星(水) / 年代表の属性: 火
+  関係: 相剋:中宮九星が年の五行を剋す(隠れたリスクが顕在化しやすい)
+  スコア: 5/5
+
+[Layer3] 西洋占星術トランジット(タイミング層・数値化なし)
+  水星逆行: 第1回逆行(魚座) 2026-02-26〜2026-03-20
+  水星逆行: 第2回逆行(蟹座) 2026-06-30〜2026-07-24
+  水星逆行: 第3回逆行(蠍座) 2026-10-24〜2026-11-13
+  主要トランジット: 土星海王星の合(牡羊座0度) exact=2026-02-20
+  本日(2026-07-04)時点: 警戒ウィンドウ内(水星逆行中: 第2回逆行(蟹座))
+  土星海王星の合(exact)まで134日
+
+[統合] 総合スコア(Layer1+Layer2の平均): 5.0/5
+  ※Layer3の警戒ウィンドウ(上記)と重なる時期ほど、リスク管理を強化すべきという運用シナリオになる。
+
+※本内容は投資助言ではありません。エンタメ×経済分析のハイブリッドコンテンツです(詳細はTHEORY.md参照)。</pre>
+<h2>日次記事</h2>
+<ul class="article-list">
+<li><a href="articles/2026-07-02.html">2026-07-02</a></li>
+</ul>
+
+<div class="disclaimer">
+<strong>免責</strong><br>
+本内容は特定の銘柄・金融商品・投資手法を推奨または勧誘するものではありません。
+干支の五行・九星気学・西洋占星術を経済分析に絡めたエンタメ×経済分析のハイブリッドコンテンツであり、
+単体で投資判断を行わないでください。市場データはyfinance(Yahoo Finance)経由の参考値であり、
+遅延・欠損の可能性があります。本内容をもとに生じたいかなる損失についても責任を負いかねます。
+</div>
+
+<p style="font-size:0.8rem;color:#888;">最終更新: 2026-07-04</p>
+
+<footer>自動生成サイト(GitHub Actions・LLM不使用)。ソース: theory_score.py / build_site.py</footer>
+</body>
+</html>
