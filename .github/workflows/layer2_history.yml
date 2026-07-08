@@ -1,9 +1,15 @@
 name: Layer2過去検証(手動実行)
 
-# 手動実行専用。日経平均の長期データでLayer2該当年/非該当年を機械比較し、
+# 日経平均の長期データでLayer2該当年/非該当年を機械比較し、
 # insights/layer2_history.md を再生成してコミットする。
+# 手動実行(Actionsタブ)のほか、検証スクリプト自体の更新時にも自動で走る。
 on:
   workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - "layer2_history.py"
+      - ".github/workflows/layer2_history.yml"
 
 permissions:
   contents: write
