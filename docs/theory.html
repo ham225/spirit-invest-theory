@@ -39,12 +39,18 @@ footer { margin-top: 2rem; font-size: 0.8rem; color: light-dark(#666, #999); }
 </head>
 <body>
 <nav><a href="index.html">トップ</a><a href="theory.html">理論定義</a><a href="backtest.html">バックテスト</a></nav>
-<h1>三層スピリチュアル・マーケット理論(3SM理論)v1.0</h1>
+<h1>三層スピリチュアル・マーケット理論(3SM理論)v1.1</h1>
 <ul>
 <li><strong>正式名称</strong>: 三層スピリチュアル・マーケット理論(Three-layer Spiritual Market theory、略称 <strong>3SM理論</strong>)</li>
 <li><strong>コンテンツ向け通称</strong>: 宙読み相場(そらよみそうば)</li>
 <li><strong>制定日</strong>: 2026-07-03(v1.0)</li>
 <li><strong>実装</strong>: <code>theory_signals.py</code>(各層の暦計算)+ <code>theory_score.py</code>(本書の計算式)</li>
+</ul>
+<h2>変更履歴</h2>
+<ul>
+<li><strong>v1.1(2026-07-09)</strong>: Layer3のT加点条件に「十方暮」(東洋暦の凶日期間)を追加(§2)。
+  金星のサイントランジットを「資金ローテーション観測」として追加(§1.5、Sスコアには含めない参考情報)。
+  出典: SMC(森永康平)氏 YouTube生配信(2026-07-08 22:00〜24:00)。</li>
 </ul>
 <hr />
 <h2>0. 位置づけ(最重要)</h2>
@@ -121,6 +127,45 @@ footer { margin-top: 2rem; font-size: 0.8rem; color: light-dark(#666, #999); }
 </tr>
 </tbody>
 </table>
+<h2>1.5 補助情報: 金星サインによる資金ローテーション観測(v1.1追加、Sスコア対象外)</h2>
+<p>西洋占星術で「金星」は資産・価値観の象徴とされる。金星が滞在するサイン(星座)の五行属性により、
+モメンタム系資産と割安・配当系資産のどちらに資金が向かいやすいかという<strong>方向性を含む示唆</strong>を、
+<code>insights</code>記事の参考情報として併記する。</p>
+<table>
+<thead>
+<tr>
+<th>サインの五行</th>
+<th>サイン</th>
+<th>示唆</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>火</td>
+<td>牡羊・獅子・射手</td>
+<td>モメンタム/グロース優勢の示唆</td>
+</tr>
+<tr>
+<td>土</td>
+<td>牡牛・乙女・山羊</td>
+<td>割安・配当・堅実優勢の示唆</td>
+</tr>
+<tr>
+<td>風</td>
+<td>双子・天秤・水瓶</td>
+<td>情報・テーマ分散優勢の示唆</td>
+</tr>
+<tr>
+<td>水</td>
+<td>蟹・蠍・魚</td>
+<td>防御的・安全資産優勢の示唆</td>
+</tr>
+</tbody>
+</table>
+<p><strong>§0で定めた「Sスコアは方向を出力しない」という設計原則を守るため、この観測はSスコアの計算式には
+一切組み込まず、あくまで参考コメントとして分離する。</strong> データは<code>astro_events_&lt;year&gt;.json</code>の
+<code>venus_transits</code>に手入力する(金星は年に十数回サインを移動するため、他のトランジットと同様に
+判明した範囲から順次追記する運用とする)。</p>
 <h2>2. スコア定義(定量化)</h2>
 <h3>Layer1|年次増幅スコア A(1〜3、年次)</h3>
 <table>
@@ -185,7 +230,7 @@ Aは強度のみを示し、<strong>上げ下げの方向は示さない</strong
 </tr>
 </tbody>
 </table>
-<h3>Layer3|タイミング係数 T(0〜2、日次)</h3>
+<h3>Layer3|タイミング係数 T(0〜3、日次、v1.1で上限2→3)</h3>
 <table>
 <thead>
 <tr>
@@ -202,16 +247,21 @@ Aは強度のみを示し、<strong>上げ下げの方向は示さない</strong
 <td>主要トランジット(土星海王星の合など)の exact ±14日以内</td>
 <td>+1</td>
 </tr>
+<tr>
+<td>十方暮(甲申〜癸巳の10日間、60日ごとに巡る東洋暦の凶日期間)期間中</td>
+<td>+1</td>
+</tr>
 </tbody>
 </table>
 <p>±14日(オーブ)は <code>backtest.py</code> の <code>ORB_DAYS</code> と共通の定数とする。
-トランジット暦(<code>astro_events_&lt;year&gt;.json</code>)が未整備の年は T=0 とし、その旨を明示する。</p>
-<h2>3. 統合ロジック|日次警戒レベル S(0〜100)</h2>
+トランジット暦(<code>astro_events_&lt;year&gt;.json</code>)が未整備の年は水星逆行・主要トランジット分は0とする
+(十方暮は60日周期の暦計算のみで求まるため、年ごとのデータ整備状況によらず常に判定できる)。</p>
+<h2>3. 統合ロジック|日次警戒レベル S(0〜120、v1.1で上限100→120)</h2>
 <pre><code>S = 10 × A × R + 20 × T
 </code></pre>
 <ul>
 <li><strong>年次成分 10AR(最大60)</strong>: 「増幅された年 × 隠れリスクの年」であるほど、地合いそのものの警戒度が高い</li>
-<li><strong>日次成分 20T(最大40)</strong>: その警戒がいつ顕在化しやすいか</li>
+<li><strong>日次成分 20T(最大60、v1.1でTの上限が2→3になったため)</strong>: その警戒がいつ顕在化しやすいか</li>
 </ul>
 <table>
 <thead>
@@ -223,7 +273,7 @@ Aは強度のみを示し、<strong>上げ下げの方向は示さない</strong
 </thead>
 <tbody>
 <tr>
-<td>70〜100</td>
+<td>70以上</td>
 <td><strong>厳戒</strong></td>
 <td>新規ポジションを見送り、既存ポジションのサイズ縮小を検討する時期</td>
 </tr>
@@ -309,6 +359,11 @@ Aは強度のみを示し、<strong>上げ下げの方向は示さない</strong
 </table>
 <p>→ READMEの定性シナリオ(「後半、特に7月前後・11月前後に振れ幅拡大に警戒」)が
 計算式から機械的に再導出されることを確認(2026-07-03時点、<code>python theory_score.py --year 2026</code>)。</p>
+<blockquote>
+<p><strong>注(v1.1)</strong>: 上表は十方暮追加前(v1.0時点)の抜粋である。十方暮は60日周期で年6回前後
+巡ってくるため、実際の年間シナリオは<code>python theory_score.py --year 2026</code>を都度実行して
+最新の計算結果を確認すること(サイトの日次記事にも反映される)。</p>
+</blockquote>
 <h2>6. 反証条件(この理論を「外れ」と判定する基準)</h2>
 <p>本理論はエンタメであると同時に、以下の基準で日次データによる棄却判定を受け続ける。</p>
 <ul>

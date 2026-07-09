@@ -22,7 +22,10 @@ from theory_signals import (
     CONTROLS,
     GENERATES,
     STEM_ELEMENT,
+    day_ganzhi,
     get_astro_flags,
+    get_venus_sign,
+    is_jippougure,
     year_center_star,
     year_ganzhi_element,
 )
@@ -80,8 +83,9 @@ def layer2_risk(year: int):
 
 
 def layer3_timing(date_str: str):
-    """T: タイミング係数(0〜2)と判定理由を返す。"""
-    year = datetime.date.fromisoformat(date_str).year
+    """T: タイミング係数(0〜3、v1.1で十方暮を追加)と判定理由を返す。"""
+    date = datetime.date.fromisoformat(date_str)
+    year = date.year
     astro = get_astro_flags(date_str, year)
     score = 0
     reasons = []
@@ -92,11 +96,14 @@ def layer3_timing(date_str: str):
     if days != "" and abs(days) <= ORB_DAYS:
         score += 1
         reasons.append(f"主要トランジットexactまで{days}日+1(±{ORB_DAYS}日以内)")
+    if is_jippougure(date):
+        score += 1
+        reasons.append(f"十方暮期間中+1(本日={day_ganzhi(date)}、東洋暦の凶日期間)")
     if not reasons:
         if astro["mercury_retrograde_name"] == "astroデータ未整備の年":
             reasons.append(f"+0(astro_events_{year}.json が未整備のため T=0 扱い)")
         else:
-            reasons.append("+0(逆行・トランジットの警戒ウィンドウ外)")
+            reasons.append("+0(逆行・トランジット・十方暮いずれの警戒ウィンドウ外)")
     return score, reasons
 
 

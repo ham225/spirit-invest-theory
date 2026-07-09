@@ -65,7 +65,24 @@ def layer3_text(row: dict) -> str:
             parts.append(f"土星海王星の合(exact)まで{int(days_raw)}日。前後14日の警戒ウィンドウ内にあります。")
         else:
             parts.append(f"土星海王星の合(exact)まで{int(days_raw)}日。警戒ウィンドウ外です。")
+
+    ganzhi = row.get("day_ganzhi") or ""
+    if row.get("jippougure") == "True":
+        parts.append(f"本日は十方暮期間中(本日={ganzhi})。天地の氣が調和しにくいとされる東洋暦の凶日期間で、一時的なポジティブな値動きが大引けにかけて反転する可能性に注意したい時期です。")
+    else:
+        parts.append("十方暮の期間外です。")
     return " ".join(parts)
+
+
+def venus_text(row: dict) -> str:
+    sign = row.get("venus_sign") or ""
+    bias = row.get("venus_bias") or ""
+    if not sign:
+        return ""
+    return (
+        f"\n## 補助情報: 金星サインによる資金ローテーション観測(v1.1、Sスコア対象外)\n\n"
+        f"金星は現在{sign}に滞在中です({bias})。この観測はSスコアの計算には含めていない参考コメントです。\n"
+    )
 
 
 def build_article(row: dict) -> str:
@@ -101,7 +118,7 @@ def build_article(row: dict) -> str:
 ## Layer3: 西洋占星術トランジットレイヤー(タイミング層)
 
 {layer3_text(row)}
-
+{venus_text(row)}
 ## 統合: 今日の警戒レベル(3SM理論)
 
 **S = {score["score"]}({score["band"]})** = 年次成分 10×A×R = {10 * score["A"] * score["R"]}点 + 日次成分 20×T = {20 * score["T"]}点

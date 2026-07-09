@@ -14,8 +14,11 @@ JST = datetime.timezone(datetime.timedelta(hours=9))
 import yfinance as yf
 
 from theory_signals import (
+    day_ganzhi,
     five_element_relation,
     get_astro_flags,
+    get_venus_sign,
+    is_jippougure,
     year_center_star,
     year_ganzhi_element,
 )
@@ -42,6 +45,8 @@ FIELDS = [
     "layer2_relation",
     "mercury_retrograde", "mercury_retrograde_name",
     "saturn_neptune_days_from_exact",
+    "day_ganzhi", "jippougure",
+    "venus_sign", "venus_bias",
 ]
 
 
@@ -97,6 +102,13 @@ def main():
     row["mercury_retrograde"] = astro["mercury_retrograde"]
     row["mercury_retrograde_name"] = astro["mercury_retrograde_name"]
     row["saturn_neptune_days_from_exact"] = astro["saturn_neptune_days_from_exact"]
+
+    row["day_ganzhi"] = day_ganzhi(now_jst)
+    row["jippougure"] = is_jippougure(now_jst)
+
+    venus = get_venus_sign(today, year)
+    row["venus_sign"] = venus["sign"]
+    row["venus_bias"] = venus["bias"]
 
     LOG.parent.mkdir(parents=True, exist_ok=True)
     write_header = not LOG.exists()

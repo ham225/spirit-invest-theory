@@ -43,6 +43,29 @@ CONTROLS = {"木": "土", "土": "水", "水": "火", "火": "金", "金": "木"
 REF_YEAR = 2026
 REF_STAR = 1
 
+# 十方暮(甲申〜癸巳の10日間、60日ごとに巡る凶日期間)の起点。
+# 2026-07-09が六十干支の甲申(60干支中インデックス20)であることを暦資料で確認済み。
+# 干支の日めくりは太陽暦の影響を受けない厳密な60日周期のため、この1点を基準に
+# 過去・未来どの日の六十干支インデックスも計算できる。
+JIPPOUGURE_ANCHOR = datetime.date(2026, 7, 9)
+JIPPOUGURE_ANCHOR_INDEX = 20  # 甲申 = 60干支中20番目(0=甲子)
+
+# 金星のサイン(五行に対応させた資金ローテーションの示唆、Sスコアには含めない)
+VENUS_SIGN_BIAS = {
+    "牡羊座": ("火", "モメンタム/グロース優勢の示唆"),
+    "獅子座": ("火", "モメンタム/グロース優勢の示唆"),
+    "射手座": ("火", "モメンタム/グロース優勢の示唆"),
+    "牡牛座": ("土", "割安・配当・堅実優勢の示唆"),
+    "乙女座": ("土", "割安・配当・堅実優勢の示唆"),
+    "山羊座": ("土", "割安・配当・堅実優勢の示唆"),
+    "双子座": ("風", "情報・テーマ分散優勢の示唆"),
+    "天秤座": ("風", "情報・テーマ分散優勢の示唆"),
+    "水瓶座": ("風", "情報・テーマ分散優勢の示唆"),
+    "蟹座": ("水", "防御的・安全資産優勢の示唆"),
+    "蠍座": ("水", "防御的・安全資産優勢の示唆"),
+    "魚座": ("水", "防御的・安全資産優勢の示唆"),
+}
+
 
 def year_ganzhi_element(year: int):
     """(十干, 十二支, 年の代表五行, 干支表記)を返す。
@@ -110,6 +133,42 @@ def get_astro_flags(date_str: str, year: int) -> dict:
         ]
         result["saturn_neptune_days_from_exact"] = min(diffs, key=abs)
 
+    return result
+
+
+def day_ganzhi_index(date: datetime.date) -> int:
+    """その日の六十干支インデックス(0=甲子〜59=癸亥)を返す。"""
+    return (JIPPOUGURE_ANCHOR_INDEX + (date - JIPPOUGURE_ANCHOR).days) % 60
+
+
+def day_ganzhi(date: datetime.date) -> str:
+    """その日の干支表記(例:甲申)を返す。"""
+    i = day_ganzhi_index(date)
+    return f"{STEMS[i % 10]}{BRANCHES[i % 12]}"
+
+
+def is_jippougure(date: datetime.date) -> bool:
+    """十方暮(甲申〜癸巳の10日間)期間中かどうかを返す(Layer3のT加点条件)。"""
+    return 20 <= day_ganzhi_index(date) <= 29
+
+
+def get_venus_sign(date_str: str, year: int) -> dict:
+    """金星のサイン(資金ローテーション観測、参考情報でSスコアには含めない)を返す。"""
+    path = BASE / f"astro_events_{year}.json"
+    result = {"sign": "", "bias": "", "note": ""}
+    if not path.exists():
+        return result
+
+    data = json.loads(path.read_text(encoding="utf-8"))
+    today = datetime.date.fromisoformat(date_str)
+    for t in data.get("venus_transits", []):
+        start = datetime.date.fromisoformat(t["start"])
+        end = datetime.date.fromisoformat(t["end"]) if t.get("end") else None
+        if start <= today and (end is None or today <= end):
+            sign = t["sign"]
+            _, bias = VENUS_SIGN_BIAS.get(sign, ("", ""))
+            result = {"sign": sign, "bias": bias, "note": t.get("note", "")}
+            break
     return result
 
 
