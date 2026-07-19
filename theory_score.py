@@ -4,8 +4,8 @@
 THEORY.md §2〜§4 の計算式をそのまま実装した決定的な計算のみ(LLM・乱数なし)。
 - Layer1: 年次増幅スコア A(1〜3)
 - Layer2: 隠れリスク指数 R(0〜2)
-- Layer3: タイミング係数 T(0〜2、日次)
-- 統合:   日次警戒レベル S = 10*A*R + 20*T(0〜100)
+- Layer3: タイミング係数 T(0〜5、日次)
+- 統合:   日次警戒レベル S = 10*A*R + 20*T(0〜160)
 
 使い方:
   python theory_score.py                # 今日の警戒レベル
@@ -83,7 +83,7 @@ def layer2_risk(year: int):
 
 
 def layer3_timing(date_str: str):
-    """T: タイミング係数(0〜3、v1.1で十方暮を追加)と判定理由を返す。"""
+    """T: タイミング係数(0〜5、v1.2で土用・水星シャドウ期間を追加)と判定理由を返す。"""
     date = datetime.date.fromisoformat(date_str)
     year = date.year
     astro = get_astro_flags(date_str, year)
@@ -92,6 +92,12 @@ def layer3_timing(date_str: str):
     if astro["mercury_retrograde"]:
         score += 1
         reasons.append(f"水星逆行中+1({astro['mercury_retrograde_name']})")
+    elif astro["mercury_shadow"]:
+        score += 1
+        reasons.append(
+            f"水星シャドウ期間中+1({astro['mercury_shadow_name']}明け、逆行終了時に留まっていた度数へ水星が戻るまでの期間。"
+            "誤発注・決算修正など『最後の逆襲』への警戒、v1.2で追加)"
+        )
     days = astro["saturn_neptune_days_from_exact"]
     if days != "" and abs(days) <= ORB_DAYS:
         score += 1
@@ -99,11 +105,16 @@ def layer3_timing(date_str: str):
     if is_jippougure(date):
         score += 1
         reasons.append(f"十方暮期間中+1(本日={day_ganzhi(date)}、東洋暦の凶日期間)")
+    if astro["doyo"]:
+        score += 1
+        reasons.append(
+            f"土用期間中+1({astro['doyo_name']}、季節の変わり目で土の氣が強まり地合いが不安定になりやすい時期、v1.2で追加)"
+        )
     if not reasons:
         if astro["mercury_retrograde_name"] == "astroデータ未整備の年":
             reasons.append(f"+0(astro_events_{year}.json が未整備のため T=0 扱い)")
         else:
-            reasons.append("+0(逆行・トランジット・十方暮いずれの警戒ウィンドウ外)")
+            reasons.append("+0(逆行・シャドウ・トランジット・十方暮・土用いずれの警戒ウィンドウ外)")
     return score, reasons
 
 

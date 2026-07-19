@@ -52,13 +52,17 @@ def market_snapshot(row: dict) -> str:
 def layer3_text(row: dict) -> str:
     retro = row.get("mercury_retrograde") == "True"
     retro_name = row.get("mercury_retrograde_name") or ""
+    shadow = row.get("mercury_shadow") == "True"
+    shadow_name = row.get("mercury_shadow_name") or ""
     days_raw = to_float(row.get("saturn_neptune_days_from_exact"))
 
     parts = []
     if retro:
         parts.append(f"本日は水星逆行期間中({retro_name})。短期的な見誤り・訂正が起きやすい警戒ウィンドウにあたります。")
+    elif shadow:
+        parts.append(f"本日は水星シャドウ期間中({shadow_name}明けの余波)。逆行は終わっていますが、水星が逆行開始時の度数へ戻るまでは誤発注や決算修正などの『最後の逆襲』に注意したい期間です。")
     else:
-        parts.append("本日は水星逆行期間外です。")
+        parts.append("本日は水星逆行・シャドウ期間外です。")
 
     if days_raw is not None:
         if abs(days_raw) <= 14:
@@ -71,17 +75,30 @@ def layer3_text(row: dict) -> str:
         parts.append(f"本日は十方暮期間中(本日={ganzhi})。天地の氣が調和しにくいとされる東洋暦の凶日期間で、一時的なポジティブな値動きが大引けにかけて反転する可能性に注意したい時期です。")
     else:
         parts.append("十方暮の期間外です。")
+
+    if row.get("doyo") == "True":
+        parts.append(f"本日は{row.get('doyo_name') or '土用'}期間中。季節の変わり目で土の氣が強まり、出来高が細って小口の売りでも荒れやすいとされる時期です。")
+    else:
+        parts.append("土用の期間外です。")
     return " ".join(parts)
 
 
 def venus_text(row: dict) -> str:
     sign = row.get("venus_sign") or ""
     bias = row.get("venus_bias") or ""
-    if not sign:
+    sun_sign = row.get("sun_sign") or ""
+    sun_bias = row.get("sun_bias") or ""
+    lines = []
+    if sign:
+        lines.append(f"金星は現在{sign}に滞在中です({bias})。")
+    if sun_sign:
+        lines.append(f"太陽は現在{sun_sign}シーズンです({sun_bias})。")
+    if not lines:
         return ""
     return (
-        f"\n## 補助情報: 金星サインによる資金ローテーション観測(v1.1、Sスコア対象外)\n\n"
-        f"金星は現在{sign}に滞在中です({bias})。この観測はSスコアの計算には含めていない参考コメントです。\n"
+        f"\n## 補助情報: 金星・太陽サインによる資金ローテーション観測(v1.1で金星、v1.2で太陽を追加、Sスコア対象外)\n\n"
+        + "".join(lines)
+        + "この観測はSスコアの計算には含めていない参考コメントです。\n"
     )
 
 

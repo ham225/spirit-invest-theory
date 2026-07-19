@@ -50,7 +50,8 @@ REF_STAR = 1
 JIPPOUGURE_ANCHOR = datetime.date(2026, 7, 9)
 JIPPOUGURE_ANCHOR_INDEX = 20  # 甲申 = 60干支中20番目(0=甲子)
 
-# 金星のサイン(五行に対応させた資金ローテーションの示唆、Sスコアには含めない)
+# サイン(星座)の五行に対応させた資金ローテーションの示唆(Sスコアには含めない)。
+# 金星サイン(get_venus_sign)・太陽サイン(get_sun_sign)の両方で共用する。
 VENUS_SIGN_BIAS = {
     "牡羊座": ("火", "モメンタム/グロース優勢の示唆"),
     "獅子座": ("火", "モメンタム/グロース優勢の示唆"),
@@ -65,6 +66,25 @@ VENUS_SIGN_BIAS = {
     "蠍座": ("水", "防御的・安全資産優勢の示唆"),
     "魚座": ("水", "防御的・安全資産優勢の示唆"),
 }
+
+# 太陽のサイン(西洋占星術の「シーズン」)の固定日付レンジ。太陽は毎年ほぼ同じ日に
+# サインを移動するため、金星と異なり年ごとのデータ整備は不要(v1.2追加)。
+# 月をまたぐ山羊座のみ (開始月日, 12/31) と (1/1, 終了月日) の2レンジで表現する。
+SUN_SIGN_RANGES = [
+    ("牡羊座", (3, 21), (4, 19)),
+    ("牡牛座", (4, 20), (5, 20)),
+    ("双子座", (5, 21), (6, 21)),
+    ("蟹座", (6, 22), (7, 22)),
+    ("獅子座", (7, 23), (8, 22)),
+    ("乙女座", (8, 23), (9, 22)),
+    ("天秤座", (9, 23), (10, 23)),
+    ("蠍座", (10, 24), (11, 22)),
+    ("射手座", (11, 23), (12, 21)),
+    ("山羊座", (12, 22), (12, 31)),
+    ("山羊座", (1, 1), (1, 19)),
+    ("水瓶座", (1, 20), (2, 18)),
+    ("魚座", (2, 19), (3, 20)),
+]
 
 
 def year_ganzhi_element(year: int):
@@ -108,7 +128,11 @@ def get_astro_flags(date_str: str, year: int) -> dict:
     result = {
         "mercury_retrograde": False,
         "mercury_retrograde_name": "",
+        "mercury_shadow": False,
+        "mercury_shadow_name": "",
         "saturn_neptune_days_from_exact": "",
+        "doyo": False,
+        "doyo_name": "",
     }
     if not path.exists():
         result["mercury_retrograde_name"] = "astroデータ未整備の年"
@@ -124,6 +148,13 @@ def get_astro_flags(date_str: str, year: int) -> dict:
             result["mercury_retrograde"] = True
             result["mercury_retrograde_name"] = period["name"]
             break
+        shadow_end_raw = period.get("shadow_end")
+        if shadow_end_raw:
+            shadow_end = datetime.date.fromisoformat(shadow_end_raw)
+            if end < today <= shadow_end:
+                result["mercury_shadow"] = True
+                result["mercury_shadow_name"] = period["name"]
+                break
 
     transits = data.get("major_transits", [])
     if transits:
@@ -132,6 +163,14 @@ def get_astro_flags(date_str: str, year: int) -> dict:
             for t in transits
         ]
         result["saturn_neptune_days_from_exact"] = min(diffs, key=abs)
+
+    for period in data.get("doyo_periods", []):
+        start = datetime.date.fromisoformat(period["start"])
+        end = datetime.date.fromisoformat(period["end"])
+        if start <= today <= end:
+            result["doyo"] = True
+            result["doyo_name"] = period["name"]
+            break
 
     return result
 
@@ -170,6 +209,18 @@ def get_venus_sign(date_str: str, year: int) -> dict:
             result = {"sign": sign, "bias": bias, "note": t.get("note", "")}
             break
     return result
+
+
+def get_sun_sign(date: datetime.date) -> dict:
+    """太陽のサイン(季節、資金ローテーション観測、参考情報でSスコアには含めない)を返す。
+    金星と異なり太陽は毎年ほぼ同じ日にサインを移動するため、JSONデータ不要の固定計算(v1.2)。
+    """
+    md = (date.month, date.day)
+    for sign, start, end in SUN_SIGN_RANGES:
+        if start <= md <= end:
+            _, bias = VENUS_SIGN_BIAS.get(sign, ("", ""))
+            return {"sign": sign, "bias": bias}
+    return {"sign": "", "bias": ""}
 
 
 if __name__ == "__main__":

@@ -17,6 +17,7 @@ from theory_signals import (
     day_ganzhi,
     five_element_relation,
     get_astro_flags,
+    get_sun_sign,
     get_venus_sign,
     is_jippougure,
     year_center_star,
@@ -44,9 +45,12 @@ FIELDS = [
     "center_star", "center_star_element",
     "layer2_relation",
     "mercury_retrograde", "mercury_retrograde_name",
+    "mercury_shadow", "mercury_shadow_name",
     "saturn_neptune_days_from_exact",
     "day_ganzhi", "jippougure",
+    "doyo", "doyo_name",
     "venus_sign", "venus_bias",
+    "sun_sign", "sun_bias",
 ]
 
 
@@ -101,7 +105,11 @@ def main():
     astro = get_astro_flags(today, year)
     row["mercury_retrograde"] = astro["mercury_retrograde"]
     row["mercury_retrograde_name"] = astro["mercury_retrograde_name"]
+    row["mercury_shadow"] = astro["mercury_shadow"]
+    row["mercury_shadow_name"] = astro["mercury_shadow_name"]
     row["saturn_neptune_days_from_exact"] = astro["saturn_neptune_days_from_exact"]
+    row["doyo"] = astro["doyo"]
+    row["doyo_name"] = astro["doyo_name"]
 
     row["day_ganzhi"] = day_ganzhi(now_jst)
     row["jippougure"] = is_jippougure(now_jst)
@@ -109,6 +117,10 @@ def main():
     venus = get_venus_sign(today, year)
     row["venus_sign"] = venus["sign"]
     row["venus_bias"] = venus["bias"]
+
+    sun = get_sun_sign(now_jst)
+    row["sun_sign"] = sun["sign"]
+    row["sun_bias"] = sun["bias"]
 
     LOG.parent.mkdir(parents=True, exist_ok=True)
     write_header = not LOG.exists()
